@@ -208,3 +208,29 @@ class Router:
             if self.stop:
                 print(threading.currentThread().getName() + ': Ending')
                 return
+
+
+class MPLS_frame:
+    # @param label: identifies virtual links between nodes
+    # @param network packet: takes in a network packet from the "first hop router" to encapsulate into mpls frame
+    def __init__(self, label, network_packet):
+        self.label = label
+        self.packet = network_packet
+        # Labels are always length 20
+        self.label_S_length = 20
+
+    def to_byte_S(self):
+        byte_S = self.label.zfill(self.label_S_length)
+        byte_S += self.packet
+        return byte_S
+
+    # extract packet from byte string (byte_S)
+    @classmethod
+    def from_byte_S(self, byte_S):
+        label = byte_S[0:self.label_S_length].lstrip('0')
+        packet = byte_S[self.label_S_length:]
+        return self(label, packet)
+
+    # called when printing the object
+    def __str__(self):
+        return self.to_byte_S()
