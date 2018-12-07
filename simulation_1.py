@@ -21,10 +21,12 @@ if __name__ == '__main__':
     # create routers and routing tables for connected clients (subnets)
     # {destination : value that determines whether or not to encapsulate}
     # only encapsulate when destination is H2
-    encap_tbl_D = {'H2': '...'}  # table used to encapsulate network packets into MPLS frames
-    frwd_tbl_D = {(0, '...'): (1, '...'), (1, '...'): (0, '...')}  # table used to forward MPLS frames
+    encap_tbl_D = {'H2': '77'}  # table used to encapsulate network packets into MPLS frames
+    # {(intf_in, in_label) : (out_intf, out_label)}
+    frwd_tbl_D = {(0, '77'): (1, '77'), (1, '66'): (0, '66')}  # table used to forward MPLS frames
     # only decapsulate when it is already encapsulated, and intf = 0, (infers it's going to Host1)
-    decap_tbl_D = {'...': 0}  # table used to decapsulate network packets from MPLS frames
+    # {in_label : in_interface}
+    decap_tbl_D = {'H1': 0}  # table used to decapsulate network packets from MPLS frames
 
     router_a = Router(name='RA',
                       intf_capacity_L=[500, 500],
@@ -35,9 +37,11 @@ if __name__ == '__main__':
     object_L.append(router_a)
 
     # {destination : value that determines whether or not to encapsulate }
-    encap_tbl_D = {'H1': '...'}
-    frwd_tbl_D = {(0, '...'): (1, '...'), (1, '...'): (0, '...')}
-    decap_tbl_D = {'...': 1}
+    encap_tbl_D = {'H1': '66'}
+    # {(intf_in, in_label) : (out_intf, out_label)}
+    frwd_tbl_D = {(0, '66'): (1, '66'), (1, '77'): (0, '77')}
+    # {in_label : in_interface}
+    decap_tbl_D = {'H': 1}
     router_b = Router(name='RB',
                       intf_capacity_L=[500, 100],
                       encap_tbl_D=encap_tbl_D,
