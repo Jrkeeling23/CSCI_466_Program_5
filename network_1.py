@@ -165,10 +165,7 @@ class Router:
                 p = NetworkPacket.from_byte_S(pkt_S)  # parse a packet out
                 self.process_network_packet(p, i)
             elif fr.type_S == "MPLS":
-                # TODO: handle MPLS frames
-                # m_fr = MPLSFrame.from_byte_S(pkt_S) #parse a frame out
-                # for now, we just relabel the packet as an MPLS frame without encapsulation
-                m_fr = p
+                m_fr = MPLS_frame.from_byte_S(pkt_S)  # parse a frame out
                 # send the MPLS frame for processing
                 self.process_MPLS_frame(m_fr, i)
             else:
@@ -178,12 +175,14 @@ class Router:
     #  @param p Packet to forward
     #  @param i Incoming interface number for packet p
     def process_network_packet(self, pkt, i):
-        # TODO: encapsulate the packet in an MPLS frame based on self.encap_tbl_D
-        # for now, we just relabel the packet as an MPLS frame without encapsulation
-        m_fr = pkt
-        print('%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
-        # send the encapsulated packet for processing as MPLS frame
-        self.process_MPLS_frame(m_fr, i)
+        # check whether or not destination in contained in encapsulation table.
+        encapsulate = self.encap_tbl_D[pkt.dst]
+        if encapsulate is 1:
+            # create mpls frame for forwarding between routers
+            m_fr = MPLS_frame(pkt.to_byte_S(), encapsulate)
+            print('%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
+            # send the encapsulated packet for processing as MPLS frame
+            self.process_MPLS_frame(m_fr, i)
 
     ## process an MPLS frame incoming to this router
     #  @param m_fr: MPLS frame to process
