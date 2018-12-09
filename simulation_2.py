@@ -17,14 +17,16 @@ if __name__ == '__main__':
     object_L.append(host_1)
     host_2 = Host('H2')
     object_L.append(host_2)
+    host_3 = Host('H3')
+    object_L.append(host_3)
 
     # create routers and routing tables for connected clients (subnets)
     # {destination : value that determines whether or not to encapsulate }
-    encap_tbl_D = {}
+    encap_tbl_D = {'H3': '77', 'H3': '66'}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(): (), (): ()}
+    frwd_tbl_D = {(0, '77'): (2, '77'), (2, '55'): (0, '55'), (1, '66'): (3, '66'), (3, '44'): (1, '44')}
     # {in_label : destination}
-    decap_tbl_D = {}
+    decap_tbl_D = {'55': 'H1', '44': 'H2'}
     router_a = Router(name='RA',
                       intf_capacity_L=[500, 500],
                       encap_tbl_D=encap_tbl_D,
@@ -34,10 +36,12 @@ if __name__ == '__main__':
     object_L.append(router_a)
 
     # {destination : value that determines whether or not to encapsulate }
+    # never will encapsulate
     encap_tbl_D = {}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(): (), (): ()}
+    frwd_tbl_D = {(0, '77'): (1, '77'), (1, '55'): (0, '55')}
     # {in_label : destination}
+    # never will decapsulate
     decap_tbl_D = {}
     router_b = Router(name='RB',
                       intf_capacity_L=[500, 100],
@@ -48,10 +52,12 @@ if __name__ == '__main__':
     object_L.append(router_b)
 
     # {destination : value that determines whether or not to encapsulate }
+    # never will encapsulate
     encap_tbl_D = {}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(): (), (): ()}
+    frwd_tbl_D = {(0, '66'): (1, '66'), (1, '44'): (0, '44')}
     # {in_label : destination}
+    # never will decapsulate
     decap_tbl_D = {}
     router_c = Router(name='RC',
                       intf_capacity_L=[500, 100],
@@ -62,11 +68,11 @@ if __name__ == '__main__':
     object_L.append(router_c)
 
     # {destination : value that determines whether or not to encapsulate }
-    encap_tbl_D = {}
+    encap_tbl_D = {'H1': '55', 'H2': '44'}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(): (), (): ()}
+    frwd_tbl_D = {(0, '77'): (2, '77'), (1, '66'): (2, '66'), (2, '44'): (1, '44'), (2, '55'): (0, '55')}
     # {in_label : destination}
-    decap_tbl_D = {}
+    decap_tbl_D = {'77': 'H3', '66': 'H3'}
     router_d = Router(name='RD',
                       intf_capacity_L=[500, 100],
                       encap_tbl_D=encap_tbl_D,
@@ -81,10 +87,14 @@ if __name__ == '__main__':
 
     # add all the links - need to reflect the connectivity in cost_D tables above
     link_layer.add_link(Link(host_1, 0, router_a, 0))
-    link_layer.add_link(Link(router_a, 1, router_b, 0))
-    link_layer.add_link(Link(router_b, 1, host_2, 0))
+    link_layer.add_link(Link(host_2, 1, router_a, 1))
+    link_layer.add_link(Link(router_a, 2, router_b, 0))
+    link_layer.add_link(Link(router_a, 3, router_c, 0))
+    link_layer.add_link(Link(router_b, 1, router_d, 0))
+    link_layer.add_link(Link(router_c, 1, router_d, 1))
+    link_layer.add_link(Link(router_d, 2, host_3, 0))
 
-    # start all the objects
+        # start all the objects
     thread_L = []
     for obj in object_L:
         thread_L.append(threading.Thread(name=obj.__str__(), target=obj.run))
