@@ -22,9 +22,9 @@ if __name__ == '__main__':
 
     # create routers and routing tables for connected clients (subnets)
     # {destination : value that determines whether or not to encapsulate }
-    encap_tbl_D = {'H3': '77', 'H3': '66'}
+    encap_tbl_D = {'H3': '77'}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(0, '77'): (2, '77'), (2, '55'): (0, '55'), (1, '66'): (3, '66'), (3, '44'): (1, '44')}
+    frwd_tbl_D = {(0, '77'): (2, '77'), (2, '55'): (0, '55'), (1, '77'): (3, '77'), (3, '44'): (1, '44')}
     # {in_label : destination}
     decap_tbl_D = {'55': 'H1', '44': 'H2'}
     router_a = Router(name='RA',
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     frwd_tbl_D = {(0, '77'): (1, '77'), (1, '55'): (0, '55')}
     # {in_label : destination}
     # never will decapsulate
-    decap_tbl_D = {}
+    decap_tbl_D = {'55': 0, '44': 1}
     router_b = Router(name='RB',
                       intf_capacity_L=[500,500],
                       encap_tbl_D=encap_tbl_D,
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     # never will encapsulate
     encap_tbl_D = {}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(0, '66'): (1, '66'), (1, '44'): (0, '44')}
+    frwd_tbl_D = {(0, '77'): (1, '77'), (1, '44'): (0, '44')}
     # {in_label : destination}
     # never will decapsulate
     decap_tbl_D = {}
@@ -70,9 +70,9 @@ if __name__ == '__main__':
     # {destination : value that determines whether or not to encapsulate }
     encap_tbl_D = {'H1': '55', 'H2': '44'}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(0, '77'): (2, '77'), (1, '66'): (2, '66'), (2, '44'): (1, '44'), (2, '55'): (0, '55')}
+    frwd_tbl_D = {(0, '77'): (2, '77'), (1, '77'): (2, '77'), (2, '44'): (1, '44'), (2, '55'): (0, '55')}
     # {in_label : destination}
-    decap_tbl_D = {'77': 'H3', '66': 'H3'}
+    decap_tbl_D = {'77': 'H3'}
     router_d = Router(name='RD',
                       intf_capacity_L=[500,500,500],
                       encap_tbl_D=encap_tbl_D,
@@ -103,7 +103,7 @@ if __name__ == '__main__':
         t.start()
 
     # create some send events
-    for i in range(1):
+    for i in range(5):
         priority = i % 2
         host_1.udt_send('H3', 'MESSAGE_%d_FROM_H1' % i, priority)
 
