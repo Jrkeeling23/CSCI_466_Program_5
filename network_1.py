@@ -188,22 +188,22 @@ class Router:
     #  @param m_fr: MPLS frame to process
     #  @param i Incoming interface number for the frame
     def process_MPLS_frame(self, m_fr, in_intf):
-        # TODO: implement MPLS forward, or MPLS decapsulation if this is the last hop router for the path
         print('%s: processing MPLS frame "%s"' % (self, m_fr))
-
-        print("\nself.decap_tbl_D[m_fr.label]: %s" %self.decap_tbl_D.get(m_fr.label) )
+        # if the router has a decapsulation table with specific label
         if self.decap_tbl_D.get(m_fr.label) is not None:  # Last Hop
             print("%s decapsulated packet." % self.name)
+            # obtain network pack by decapsulation
             network_pkt = m_fr.packet
             in_label = m_fr.label
             intf_out = self.frwd_tbl_D[(in_intf, in_label)][0]
             try:
                 fr = LinkFrame('Network', network_pkt)
                 self.intf_L[intf_out].put(fr.to_byte_S(), 'out', True)
-                print('%s: forwarding frame "%s" from interface %d to %d' % (self, fr, intf_out, 1))
+                print('%s: forwarding network packet "%s" from interface %d to %d' % (self, fr, intf_out, 1))
             except queue.Full:
                 print('%s: frame "%s" lost on interface %d' % (self, m_fr, intf_out))
                 pass
+        # if no decapsulation, then forward
         else:
             try:
                 in_label = m_fr.label
@@ -211,7 +211,6 @@ class Router:
                 intf_out = self.frwd_tbl_D[(in_intf, in_label)][0]
                 m_fr.label = out_label
                 fr = LinkFrame('MPLS', m_fr.to_byte_S())
-                print('intf_out: in_label: label: fr: ',intf_out, in_label, m_fr.label,fr)
                 self.intf_L[intf_out].put(fr.to_byte_S(), 'out', True)
                 print('%s: forwarding frame "%s" from label %d to %d' % (self, fr, int(in_label), int(out_label)))
             except queue.Full:
@@ -236,7 +235,6 @@ class MPLS_frame:
     def __init__(self, label, network_packet):
         self.label = label
         self.packet = network_packet
-        print("label: %s\npacket: %s"%(self.label, self.packet))
 
     def to_byte_S(self):
         byte_S = self.label.zfill(self.label_S_length)
