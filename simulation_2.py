@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # {in_label : destination}
     decap_tbl_D = {'55': 'H1', '44': 'H2'}
     router_a = Router(name='RA',
-                      intf_capacity_L=[500, 500],
+                      intf_capacity_L=[500,500,500,500],
                       encap_tbl_D=encap_tbl_D,
                       frwd_tbl_D=frwd_tbl_D,
                       decap_tbl_D=decap_tbl_D,
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # never will decapsulate
     decap_tbl_D = {}
     router_b = Router(name='RB',
-                      intf_capacity_L=[500, 100],
+                      intf_capacity_L=[500,500],
                       encap_tbl_D=encap_tbl_D,
                       frwd_tbl_D=frwd_tbl_D,
                       decap_tbl_D=decap_tbl_D,
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # never will decapsulate
     decap_tbl_D = {}
     router_c = Router(name='RC',
-                      intf_capacity_L=[500, 100],
+                      intf_capacity_L=[500,500],
                       encap_tbl_D=encap_tbl_D,
                       frwd_tbl_D=frwd_tbl_D,
                       decap_tbl_D=decap_tbl_D,
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # {in_label : destination}
     decap_tbl_D = {'77': 'H3', '66': 'H3'}
     router_d = Router(name='RD',
-                      intf_capacity_L=[500, 100],
+                      intf_capacity_L=[500,500,500],
                       encap_tbl_D=encap_tbl_D,
                       frwd_tbl_D=frwd_tbl_D,
                       decap_tbl_D=decap_tbl_D,
@@ -87,14 +87,14 @@ if __name__ == '__main__':
 
     # add all the links - need to reflect the connectivity in cost_D tables above
     link_layer.add_link(Link(host_1, 0, router_a, 0))
-    link_layer.add_link(Link(host_2, 1, router_a, 1))
+    link_layer.add_link(Link(host_2, 0, router_a, 1))
     link_layer.add_link(Link(router_a, 2, router_b, 0))
     link_layer.add_link(Link(router_a, 3, router_c, 0))
     link_layer.add_link(Link(router_b, 1, router_d, 0))
     link_layer.add_link(Link(router_c, 1, router_d, 1))
     link_layer.add_link(Link(router_d, 2, host_3, 0))
 
-        # start all the objects
+    # start all the objects
     thread_L = []
     for obj in object_L:
         thread_L.append(threading.Thread(name=obj.__str__(), target=obj.run))
@@ -103,9 +103,13 @@ if __name__ == '__main__':
         t.start()
 
     # create some send events
-    for i in range(5):
+    for i in range(1):
         priority = i % 2
-        host_1.udt_send('H2', 'MESSAGE_%d_FROM_H1' % i, priority)
+        host_1.udt_send('H3', 'MESSAGE_%d_FROM_H1' % i, priority)
+
+        sleep(2)
+
+        host_2.udt_send('H3', 'MESSAGE_%d_FROM_H2' % i, priority)
 
     # give the network sufficient time to transfer all packets before quitting
     sleep(simulation_time)

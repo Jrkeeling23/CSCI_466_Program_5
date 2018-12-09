@@ -208,6 +208,7 @@ class Router:
             try:
                 in_label = m_fr.label
                 out_label = self.frwd_tbl_D[(in_intf, in_label)][1]
+                print('\n\n\n', out_label, '\n\n\n')
                 intf_out = self.frwd_tbl_D[(in_intf, in_label)][0]
                 m_fr.label = out_label
                 fr = LinkFrame('MPLS', m_fr.to_byte_S())
