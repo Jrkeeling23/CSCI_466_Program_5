@@ -19,15 +19,12 @@ if __name__ == '__main__':
     object_L.append(host_2)
 
     # create routers and routing tables for connected clients (subnets)
-    # {destination : value that determines whether or not to encapsulate}
-    # only encapsulate when destination is H2
-    encap_tbl_D = {'H2': '77'}  # table used to encapsulate network packets into MPLS frames
+    # {destination : value that determines whether or not to encapsulate }
+    encap_tbl_D = {}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(0, '77'): (1, '77'), (1, '66'): (0, '66')}  # table used to forward MPLS frames
-    # only decapsulate when it is already encapsulated, and intf = 0, (infers it's going to Host1)
+    frwd_tbl_D = {(): (), (): ()}
     # {in_label : destination}
-    decap_tbl_D = {'66': 'H1'}  # table used to decapsulate network packets from MPLS frames
-
+    decap_tbl_D = {}
     router_a = Router(name='RA',
                       intf_capacity_L=[500, 500],
                       encap_tbl_D=encap_tbl_D,
@@ -37,11 +34,11 @@ if __name__ == '__main__':
     object_L.append(router_a)
 
     # {destination : value that determines whether or not to encapsulate }
-    encap_tbl_D = {'H1': '66'}
+    encap_tbl_D = {}
     # {(intf_in, in_label) : (out_intf, out_label)}
-    frwd_tbl_D = {(1, '66'): (0, '66'), (0, '77'): (1, '77')}
+    frwd_tbl_D = {(): (), (): ()}
     # {in_label : destination}
-    decap_tbl_D = {'77': 'H2'}
+    decap_tbl_D = {}
     router_b = Router(name='RB',
                       intf_capacity_L=[500, 100],
                       encap_tbl_D=encap_tbl_D,
@@ -49,6 +46,34 @@ if __name__ == '__main__':
                       decap_tbl_D=decap_tbl_D,
                       max_queue_size=router_queue_size)
     object_L.append(router_b)
+
+    # {destination : value that determines whether or not to encapsulate }
+    encap_tbl_D = {}
+    # {(intf_in, in_label) : (out_intf, out_label)}
+    frwd_tbl_D = {(): (), (): ()}
+    # {in_label : destination}
+    decap_tbl_D = {}
+    router_c = Router(name='RC',
+                      intf_capacity_L=[500, 100],
+                      encap_tbl_D=encap_tbl_D,
+                      frwd_tbl_D=frwd_tbl_D,
+                      decap_tbl_D=decap_tbl_D,
+                      max_queue_size=router_queue_size)
+    object_L.append(router_c)
+
+    # {destination : value that determines whether or not to encapsulate }
+    encap_tbl_D = {}
+    # {(intf_in, in_label) : (out_intf, out_label)}
+    frwd_tbl_D = {(): (), (): ()}
+    # {in_label : destination}
+    decap_tbl_D = {}
+    router_d = Router(name='RD',
+                      intf_capacity_L=[500, 100],
+                      encap_tbl_D=encap_tbl_D,
+                      frwd_tbl_D=frwd_tbl_D,
+                      decap_tbl_D=decap_tbl_D,
+                      max_queue_size=router_queue_size)
+    object_L.append(router_d)
 
     # create a Link Layer to keep track of links between network nodes
     link_layer = LinkLayer()
