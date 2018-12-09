@@ -89,7 +89,7 @@ class Link:
                           ' - queue size %d' \
                           % (
                           self, pkt_S, node_a, node_a_intf, node_b, node_b_intf, intf_a.next_avail_time - time.time(),
-                          intf_a.out_queue.qsize()))
+                          intf_a.out_queue.qsize()), '\n')
                 # uncomment the lines below to see waiting time until next transmission
             #                 else:
             #                     print('%s: waiting to transmit packet on %s %s -> %s, %s for another %f milliseconds' % (self, node_a, node_a_intf, node_b, node_b_intf, intf_a.next_avail_time - time.time()))

@@ -106,9 +106,6 @@ if __name__ == '__main__':
     for i in range(5):
         priority = i % 2
         host_1.udt_send('H3', 'MESSAGE_%d_FROM_H1' % i, priority)
-
-        sleep(2)
-
         host_2.udt_send('H3', 'MESSAGE_%d_FROM_H2' % i, priority)
 
     # give the network sufficient time to transfer all packets before quitting

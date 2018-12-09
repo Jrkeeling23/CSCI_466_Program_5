@@ -96,7 +96,7 @@ class Host:
     # @param priority: packet priority
     def udt_send(self, dst, data_S, priority=0):
         pkt = NetworkPacket(dst, data_S)
-        print('%s: sending packet "%s" with priority %d' % (self, pkt, priority))
+        print('\n%s: sending packet "%s" with priority %d' % (self, pkt, priority))
         # encapsulate network packet in a link frame (usually would be done by the OS)
         fr = LinkFrame('Network', pkt.to_byte_S())
         # enque frame onto the interface for transmission
@@ -112,7 +112,7 @@ class Host:
         fr = LinkFrame.from_byte_S(fr_S)
         assert (fr.type_S == 'Network')  # should be receiving network packets by hosts
         pkt_S = fr.data_S
-        print('%s: received packet "%s"' % (self, pkt_S))
+        print('\n%s: received packet "%s"' % (self, pkt_S))
 
     ## thread target for the host to keep receiving data
     def run(self):
@@ -180,7 +180,7 @@ class Router:
         if label is not None:
             # create mpls frame for forwarding between routers
             m_fr = MPLS_frame(label, pkt.to_byte_S())
-            print('%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
+            print('\n%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
             # send the encapsulated packet for processing as MPLS frame
             self.process_MPLS_frame(m_fr, i)
 
@@ -188,7 +188,7 @@ class Router:
     #  @param m_fr: MPLS frame to process
     #  @param i Incoming interface number for the frame
     def process_MPLS_frame(self, m_fr, in_intf):
-        print('%s: processing MPLS frame "%s"' % (self, m_fr))
+        print('\n%s: processing MPLS frame "%s"' % (self, m_fr))
         # if the router has a decapsulation table with specific label
         if self.decap_tbl_D.get(m_fr.label) is not None:  # Last Hop
             print("%s decapsulated packet." % self.name)
