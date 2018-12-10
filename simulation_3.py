@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # {in_label : destination}
     decap_tbl_D = {'77': 'H3'}
     router_d = Router(name='RD',
-                      intf_capacity_L=[500,500,500],
+                      intf_capacity_L=[500,500,100],
                       encap_tbl_D=encap_tbl_D,
                       frwd_tbl_D=frwd_tbl_D,
                       decap_tbl_D=decap_tbl_D,
@@ -102,10 +102,10 @@ if __name__ == '__main__':
     for t in thread_L:
         t.start()
 
-    for i in range(3):
+    for i in range(5):
         priority = i % 2
-        host_1.udt_send('H3', 'MESSAGE_%d_FROM_H1' % i, 1)
-        host_2.udt_send('H3', 'MESSAGE_%d_FROM_H2' % i, 0)
+        host_1.udt_send('H3', 'MESSAGE_%d_FROM_H1' % i, priority)
+        host_2.udt_send('H3', 'MESSAGE_%d_FROM_H2' % i, priority)
     # give the network sufficient time to transfer all packets before quitting
     sleep(simulation_time)
 
