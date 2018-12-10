@@ -57,6 +57,7 @@ class NetworkPacket:
         self.dst = dst
         self.data_S = data_S
         # TODO: add priority to the packet class
+        self.priority = priority
 
     ## called when printing the object
     def __str__(self):
@@ -66,6 +67,7 @@ class NetworkPacket:
     def to_byte_S(self):
         byte_S = str(self.dst).zfill(self.dst_S_length)
         byte_S += self.data_S
+        byte_S += str(self.priority)
         return byte_S
 
     ## extract a packet object from a byte string
@@ -74,7 +76,8 @@ class NetworkPacket:
     def from_byte_S(self, byte_S):
         dst = byte_S[0: NetworkPacket.dst_S_length].strip('0')
         data_S = byte_S[NetworkPacket.dst_S_length:]
-        return self(dst, data_S)
+        priority = byte_S[-1]
+        return self(dst, data_S, priority)
 
 
 ## Implements a network host for receiving and transmitting data
@@ -95,7 +98,7 @@ class Host:
     # @param data_S: data being transmitted to the network layer
     # @param priority: packet priority
     def udt_send(self, dst, data_S, priority=0):
-        pkt = NetworkPacket(dst, data_S)
+        pkt = NetworkPacket(dst, data_S, priority)
         print('\n%s: sending packet "%s" with priority %d' % (self, pkt, priority))
         # encapsulate network packet in a link frame (usually would be done by the OS)
         fr = LinkFrame('Network', pkt.to_byte_S())
@@ -164,7 +167,10 @@ class Router:
             if fr.type_S == "Network":
                 p = NetworkPacket.from_byte_S(pkt_S)  # parse a packet out
                 self.process_network_packet(p, i)
+                print("\nPacket of priority: " + p.priority)
             elif fr.type_S == "MPLS":
+                p = NetworkPacket.from_byte_S(pkt_S)
+                print("\nPacket of priority: " + p.priority)
                 m_fr = MPLS_frame.from_byte_S(pkt_S)  # parse a frame out
                 # send the MPLS frame for processing
                 self.process_MPLS_frame(m_fr, i)
@@ -179,7 +185,7 @@ class Router:
         label = self.encap_tbl_D[pkt.dst]
         if label is not None:
             # create mpls frame for forwarding between routers
-            m_fr = MPLS_frame(label, pkt.to_byte_S())
+            m_fr = MPLS_frame(label, pkt.to_byte_S(), pkt.priority)
             print('\n%s: encapsulated packet "%s" as MPLS frame "%s"' % (self, pkt, m_fr))
             # send the encapsulated packet for processing as MPLS frame
             self.process_MPLS_frame(m_fr, i)
@@ -232,7 +238,7 @@ class MPLS_frame:
     # @param network packet: takes in a network packet from the "first hop router" to encapsulate into mpls frame
     label_S_length = 20
 
-    def __init__(self, label, network_packet):
+    def __init__(self, label, network_packet, priority):
         self.label = label
         self.packet = network_packet
 
@@ -246,7 +252,8 @@ class MPLS_frame:
     def from_byte_S(self, byte_S):
         label = byte_S[0:self.label_S_length].lstrip('0')
         packet = byte_S[self.label_S_length:]
-        return self(label, packet)
+        priority = byte_S[-1]
+        return self(label, packet, priority)
 
     # called when printing the object
     def __str__(self):

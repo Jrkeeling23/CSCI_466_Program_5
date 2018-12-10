@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # {in_label : destination}
     decap_tbl_D = {'77': 'H3'}
     router_d = Router(name='RD',
-                      intf_capacity_L=[500,500,500],
+                      intf_capacity_L=[500,500,100],
                       encap_tbl_D=encap_tbl_D,
                       frwd_tbl_D=frwd_tbl_D,
                       decap_tbl_D=decap_tbl_D,
