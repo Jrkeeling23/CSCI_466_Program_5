@@ -19,13 +19,13 @@ class Interface:
         try:
             if in_or_out == 'in':
                 pkt_S = self.in_queue.get(False)
-                # if pkt_S is not None:
-                #     print('getting packet from the IN queue')
+                if pkt_S is not None:
+                    print('getting packet from the IN queue')
                 return pkt_S
             else:
                 pkt_S = self.out_queue.get(False)
-                # if pkt_S is not None:
-                #     print('getting packet from the OUT queue')
+                if pkt_S is not None:
+                    print('getting packet from the OUT queue')
                 return pkt_S
         except queue.Empty:
             return None
@@ -47,17 +47,19 @@ class Interface:
 # NOTE: You will need to extend this class for the packet to include
 # the fields necessary for the completion of this assignment.
 class NetworkPacket:
+
     ## packet encoding lengths
     dst_S_length = 5
+    priority_S_length = 1
 
     ##@param dst: address of the destination host
     # @param data_S: packet payload
     # @param priority: packet priority
-    def __init__(self, dst, data_S, priority=0):
+    def __init__(self, dst, data_S, priority):
         self.dst = dst
         self.data_S = data_S
-        # TODO: add priority to the packet class
         self.priority = priority
+
 
     ## called when printing the object
     def __str__(self):
@@ -65,18 +67,18 @@ class NetworkPacket:
 
     ## convert packet to a byte string for transmission over links
     def to_byte_S(self):
-        byte_S = str(self.dst).zfill(self.dst_S_length)
+        byte_S = str(self.priority)
+        byte_S += str(self.dst).zfill(self.dst_S_length)
         byte_S += self.data_S
-        byte_S += str(self.priority)
         return byte_S
 
     ## extract a packet object from a byte string
     # @param byte_S: byte string representation of the packet
     @classmethod
     def from_byte_S(self, byte_S):
-        dst = byte_S[0: NetworkPacket.dst_S_length].strip('0')
-        data_S = byte_S[NetworkPacket.dst_S_length:]
-        priority = byte_S[-1]
+        priority = byte_S[0:self.priority_S_length]
+        dst = byte_S[self.priority_S_length: self.dst_S_length + self.priority_S_length].strip('0')
+        data_S = byte_S[self.dst_S_length + self.priority_S_length:]
         return self(dst, data_S, priority)
 
 
@@ -97,7 +99,7 @@ class Host:
     # @param dst: destination address for the packet
     # @param data_S: data being transmitted to the network layer
     # @param priority: packet priority
-    def udt_send(self, dst, data_S, priority=0):
+    def udt_send(self, dst, data_S, priority):
         pkt = NetworkPacket(dst, data_S, priority)
         print('\n%s: sending packet "%s" with priority %d' % (self, pkt, priority))
         # encapsulate network packet in a link frame (usually would be done by the OS)
@@ -167,10 +169,7 @@ class Router:
             if fr.type_S == "Network":
                 p = NetworkPacket.from_byte_S(pkt_S)  # parse a packet out
                 self.process_network_packet(p, i)
-                print("\nPacket of priority: " + p.priority)
             elif fr.type_S == "MPLS":
-                p = NetworkPacket.from_byte_S(pkt_S)
-                print("\nPacket of priority: " + p.priority)
                 m_fr = MPLS_frame.from_byte_S(pkt_S)  # parse a frame out
                 # send the MPLS frame for processing
                 self.process_MPLS_frame(m_fr, i)
@@ -182,7 +181,8 @@ class Router:
     #  @param i Incoming interface number for packet p
     def process_network_packet(self, pkt, i):
         # check whether or not destination in contained in encapsulation table.
-        label = self.encap_tbl_D[pkt.dst]
+        # label = self.encap_tbl_D[pkt.dst]
+        label = self.encap_tbl_D.get(pkt.dst)
         if label is not None:
             # create mpls frame for forwarding between routers
             m_fr = MPLS_frame(label, pkt.to_byte_S(), pkt.priority)
@@ -196,6 +196,7 @@ class Router:
     def process_MPLS_frame(self, m_fr, in_intf):
         print('\n%s: processing MPLS frame "%s"' % (self, m_fr))
         # if the router has a decapsulation table with specific label
+
         if self.decap_tbl_D.get(m_fr.label) is not None:  # Last Hop
             print("%s decapsulated packet." % self.name)
             # obtain network pack by decapsulation
@@ -203,7 +204,7 @@ class Router:
             in_label = m_fr.label
             intf_out = self.frwd_tbl_D[(in_intf, in_label)][0]
             try:
-                fr = LinkFrame('Network', network_pkt)
+                fr = LinkFrame('Network', m_fr.packet) ### m_fr.to_Byte_S
                 self.intf_L[intf_out].put(fr.to_byte_S(), 'out', True)
                 print('%s: forwarding network packet "%s" from interface %d to %d' % (self, fr, intf_out, 1))
             except queue.Full:
@@ -213,6 +214,7 @@ class Router:
         else:
             try:
                 in_label = m_fr.label
+
                 out_label = self.frwd_tbl_D[(in_intf, in_label)][1]
                 intf_out = self.frwd_tbl_D[(in_intf, in_label)][0]
                 m_fr.label = out_label
@@ -222,7 +224,7 @@ class Router:
             except queue.Full:
                 print('%s: frame "%s" lost on interface %d' % (self, m_fr, intf_out))
 
-            pass
+                pass
     ## thread target for the host to keep forwarding data
     def run(self):
         print(threading.currentThread().getName() + ': Starting')
@@ -241,18 +243,21 @@ class MPLS_frame:
     def __init__(self, label, network_packet, priority):
         self.label = label
         self.packet = network_packet
+        self.priority = priority
 
     def to_byte_S(self):
-        byte_S = self.label.zfill(self.label_S_length)
+        byte_S = self.priority
+        byte_S += self.label.zfill(self.label_S_length)
         byte_S += self.packet
         return byte_S
 
     # extract packet from byte string (byte_S)
     @classmethod
     def from_byte_S(self, byte_S):
-        label = byte_S[0:self.label_S_length].lstrip('0')
-        packet = byte_S[self.label_S_length:]
-        priority = byte_S[-1]
+        priority = byte_S[0]
+        label = byte_S[1:self.label_S_length+1].lstrip('0')
+        packet = byte_S[self.label_S_length+1:]
+        # print("\n\n\npriority = %s, label = %s, packet = %s, byte_S= %s"%(priority, label, packet, byte_S))
         return self(label, packet, priority)
 
     # called when printing the object
